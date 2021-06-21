@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class ReverseWordsTransformerTests {
     @Test
-    void testTransform() throws MessageTransformerException {
+    void test_transform() throws MessageTransformerException {
         final ReverseWordsTransformer transformer = new ReverseWordsTransformer();
 
         final String originalMessage = "The red fox crosses the ice, intent on none of my business.";

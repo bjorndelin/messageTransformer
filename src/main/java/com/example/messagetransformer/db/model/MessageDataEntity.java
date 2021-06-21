@@ -1,6 +1,5 @@
 package com.example.messagetransformer.db.model;
 
-import com.example.messagetransformer.models.MessageData;
 import com.example.messagetransformer.models.MessageDataType;
 import lombok.Data;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -19,17 +18,6 @@ public class MessageDataEntity {
     private Long counter;
     private LocalDateTime created;
     private LocalDateTime modified;
-
-    public static MessageDataEntity convert(final MessageData messageData) {
-        final MessageDataEntity entity = new MessageDataEntity();
-        entity.setMessageDataType(messageData.getMessageDataType());
-        entity.setTransformedValue(messageData.getConvertedString());
-        entity.setOriginalValue(messageData.getOriginalString());
-        entity.setCreated(LocalDateTime.now());
-        entity.setModified(entity.getModified());
-        entity.setCounter(1L);
-        return entity;
-    }
 
     @Override
     public String toString() {

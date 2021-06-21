@@ -1,11 +1,11 @@
 package com.example.messagetransformer.models.responses;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class ErrorMessageResponse {
 
-    private String error;
+    String error;
 
     public ErrorMessageResponse(final String error) {
         this.error = error;

@@ -1,5 +1,6 @@
 package com.example.messagetransformer.services;
 
+import com.example.messagetransformer.converters.MessageDataConverter;
 import com.example.messagetransformer.db.model.MessageDataEntity;
 import com.example.messagetransformer.db.repository.MessageDataRepository;
 import com.example.messagetransformer.exceptions.ErrorType;
@@ -9,6 +10,8 @@ import com.example.messagetransformer.models.MessageDataType;
 import com.example.messagetransformer.models.requests.MessageTransformerRequest;
 import com.example.messagetransformer.models.responses.MessageTransformerResponse;
 import com.example.messagetransformer.transformers.MessageTransformerInterface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +21,8 @@ import java.util.Optional;
 
 @Service
 public class MessageTransformerService {
+
+    Logger logger = LoggerFactory.getLogger(MessageTransformerService.class);
 
     private MessageDataRepository repository;
     private EnumMap<MessageDataType, MessageTransformerInterface> messageTransformerMap;
@@ -31,11 +36,13 @@ public class MessageTransformerService {
     }
 
     public MessageTransformerResponse transformMessage(final MessageTransformerRequest request) throws MessageTransformerException {
-        final MessageData messageData = MessageData.convert(request);
+        logger.debug("Transforming message for messageDataType: {}", request.getMessageDataType());
+
+        final MessageData messageData = MessageDataConverter.convertToMessageData(request);
         final MessageData transformed = transform(messageData);
         saveData(transformed);
 
-        return MessageTransformerResponse.convert(transformed);
+        return MessageDataConverter.convertToMessageTransformerResponse(transformed);
     }
 
     private MessageData transform(final MessageData messageData) throws MessageTransformerException{
@@ -43,6 +50,8 @@ public class MessageTransformerService {
                 messageTransformerMap.get(messageData.getMessageDataType());
 
         if (messageTransformer == null) {
+            logger.error("Couldn't create a MessageTransformer from messageDataType: {}"
+                    , messageData.getMessageDataType().name());
             throw new MessageTransformerException("Transformer not found", ErrorType.NOT_FOUND);
         }
 
@@ -54,12 +63,15 @@ public class MessageTransformerService {
                 messageData.getMessageDataType(), messageData.getOriginalString());
 
         if (optionalEntity.isPresent()) {
+            logger.debug("Update and save message to db...");
+
             final MessageDataEntity entity = optionalEntity.get();
             entity.setModified(LocalDateTime.now());
             entity.setCounter(entity.getCounter() + 1);
             repository.save(entity);
         } else {
-            final MessageDataEntity entity = MessageDataEntity.convert(messageData);
+            logger.debug("Save new message to db...");
+            final MessageDataEntity entity = MessageDataConverter.convertToMessageDataEntity(messageData);
             repository.save(entity);
         }
     }

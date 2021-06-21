@@ -7,3 +7,6 @@ spring:
       password: password
       database: messageTransformer
       authentication-database: admin
+
+server:
+  port: 8080
