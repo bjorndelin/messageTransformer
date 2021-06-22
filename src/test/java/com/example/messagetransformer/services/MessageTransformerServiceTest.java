@@ -19,11 +19,13 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MessageTransformerServiceTest {
     @Test
-    void test_transformer_successful() throws MessageTransformerException {
+    void test_transformer_successful_existing_message() throws MessageTransformerException {
         final MessageDataRepository repository = mock(MessageDataRepository.class);
         final MessageTransformerInterface messageTransformerInterface = mock(MessageTransformerInterface.class);
         final List<MessageTransformerInterface> messageTransformers = new ArrayList<>();
@@ -37,10 +39,34 @@ class MessageTransformerServiceTest {
         when(messageTransformerInterface.transform(any())).thenReturn(result);
 
         final MessageTransformerService messageTransformerService = new MessageTransformerService(repository, messageTransformers);
-
         final MessageTransformerResponse response = messageTransformerService.transformMessage(request);
 
         Assertions.assertEquals(response.getResult(), result.getConvertedString());
+        Assertions.assertEquals(2, entity.getCounter());
+        verify(repository, times(1)).save(any());
+        verify(repository, times(1)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
+    }
+
+    @Test
+    void test_transformer_successful_new_message() throws MessageTransformerException {
+        final MessageDataRepository repository = mock(MessageDataRepository.class);
+        final MessageTransformerInterface messageTransformerInterface = mock(MessageTransformerInterface.class);
+        final List<MessageTransformerInterface> messageTransformers = new ArrayList<>();
+        messageTransformers.add(messageTransformerInterface);
+        final MessageTransformerRequest request = getMessageTransformerRequest();
+        final MessageDataEntity entity = getMessageDataEntity(request);
+        final MessageData result = getMessageData(request, "sihT si a tset. tI sah emos tnereffid sredivid ni ti! yaS tahW!?");
+
+        when(messageTransformerInterface.getMessageDataType()).thenReturn(MessageDataType.WORD_REVERSAL);
+        when(repository.findByMessageDataTypeAndOriginalValue(any(), any())).thenReturn(Optional.empty());
+        when(messageTransformerInterface.transform(any())).thenReturn(result);
+
+        final MessageTransformerService messageTransformerService = new MessageTransformerService(repository, messageTransformers);
+        final MessageTransformerResponse response = messageTransformerService.transformMessage(request);
+
+        Assertions.assertEquals(response.getResult(), result.getConvertedString());
+        verify(repository, times(1)).save(any());
+        verify(repository, times(1)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
     }
 
     @Test
