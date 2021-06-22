@@ -45,6 +45,8 @@ class MessageTransformerServiceTest {
         Assertions.assertEquals(2, entity.getCounter());
         verify(repository, times(1)).save(any());
         verify(repository, times(1)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
+        verify(messageTransformerInterface, times(1)).getMessageDataType();
+        verify(messageTransformerInterface, times(1)).transform(any());
     }
 
     @Test
@@ -67,10 +69,12 @@ class MessageTransformerServiceTest {
         Assertions.assertEquals(response.getResult(), result.getConvertedString());
         verify(repository, times(1)).save(any());
         verify(repository, times(1)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
+        verify(messageTransformerInterface, times(1)).getMessageDataType();
+        verify(messageTransformerInterface, times(1)).transform(any());
     }
 
     @Test
-    void test_transformer_invalid_message() {
+    void test_transformer_invalid_message() throws MessageTransformerException {
         final MessageDataRepository repository = mock(MessageDataRepository.class);
         final MessageTransformerInterface messageTransformerInterface = mock(MessageTransformerInterface.class);
         final List<MessageTransformerInterface> messageTransformers = new ArrayList<>();
@@ -90,10 +94,15 @@ class MessageTransformerServiceTest {
             Assertions.assertEquals("Bad request", e.getMessage());
             Assertions.assertEquals(ErrorType.BAD_FORMAT, e.getErrorType());
         }
+
+        verify(repository, times(0)).save(any());
+        verify(repository, times(0)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
+        verify(messageTransformerInterface, times(1)).getMessageDataType();
+        verify(messageTransformerInterface, times(0)).transform(any());
     }
 
     @Test
-    void test_transformer_invalid_message_data_type() {
+    void test_transformer_invalid_message_data_type() throws MessageTransformerException {
         final MessageDataRepository repository = mock(MessageDataRepository.class);
         final MessageTransformerInterface messageTransformerInterface = mock(MessageTransformerInterface.class);
         final List<MessageTransformerInterface> messageTransformers = new ArrayList<>();
@@ -113,6 +122,11 @@ class MessageTransformerServiceTest {
             Assertions.assertEquals("Bad request", e.getMessage());
             Assertions.assertEquals(ErrorType.BAD_FORMAT, e.getErrorType());
         }
+
+        verify(repository, times(0)).save(any());
+        verify(repository, times(0)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
+        verify(messageTransformerInterface, times(1)).getMessageDataType();
+        verify(messageTransformerInterface, times(0)).transform(any());
     }
 
     @Test
@@ -131,6 +145,9 @@ class MessageTransformerServiceTest {
             Assertions.assertEquals("Transformer not found", e.getMessage());
             Assertions.assertEquals(ErrorType.NOT_FOUND, e.getErrorType());
         }
+
+        verify(repository, times(0)).save(any());
+        verify(repository, times(0)).findByMessageDataTypeAndOriginalValue(MessageDataType.WORD_REVERSAL, request.getMessage());
     }
 
     private MessageTransformerRequest getMessageTransformerRequest() {
