@@ -7,9 +7,9 @@ import com.example.messagetransformer.models.responses.ErrorMessageResponse;
 import com.example.messagetransformer.models.responses.MessageDataTypeResponse;
 import com.example.messagetransformer.models.responses.MessageTransformerResponse;
 import com.example.messagetransformer.services.MessageTransformerService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -60,7 +60,11 @@ public class MessageTransformerController {
     @ExceptionHandler({ MessageTransformerException.class })
     public ResponseEntity<ErrorMessageResponse> handleException(MessageTransformerException e) {
         final ErrorMessageResponse error = new ErrorMessageResponse(e.getMessage());
-        return new ResponseEntity<>(error, e.getErrorType().getHttpStatus());
+        if (e.getErrorType() != null) {
+            return new ResponseEntity<>(error, e.getErrorType().getHttpStatus());
+        } else {
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @ExceptionHandler({ MethodArgumentNotValidException.class })
@@ -69,7 +73,14 @@ public class MessageTransformerController {
             final ErrorMessageResponse error = new ErrorMessageResponse("Bad request!");
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         } else {
-            final ErrorMessageResponse error = new ErrorMessageResponse(e.getFieldError().getDefaultMessage());
+            final FieldError fieldError = e.getFieldError();
+            final String message;
+            if (fieldError == null) {
+                message = "Bad Request!";
+            } else {
+                message = fieldError.getDefaultMessage();
+            }
+            final ErrorMessageResponse error = new ErrorMessageResponse(message);
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
     }

@@ -4,6 +4,8 @@ import com.example.messagetransformer.exceptions.ErrorType;
 import com.example.messagetransformer.exceptions.MessageTransformerException;
 import com.example.messagetransformer.models.MessageData;
 import com.example.messagetransformer.models.MessageDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.stream.IntStream;
 @Component
 public class ReverseWordsTransformer implements MessageTransformerInterface {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReverseWordsTransformer.class);
     private static final char[] DIVIDER_CHARS = " ,.!?:;".toCharArray();
 
     private static final HashSet<Character> DIVIDERS = new HashSet<>(IntStream
@@ -74,13 +77,15 @@ public class ReverseWordsTransformer implements MessageTransformerInterface {
 
     private void validate(final MessageData message) throws MessageTransformerException {
         if (message.getOriginalString() == null) {
+            logger.warn("Message not set! Validation failed!");
             throw new MessageTransformerException("Message not set!", ErrorType.BAD_FORMAT);
         }
 
         message.setOriginalString(message.getOriginalString().trim());
 
         if (message.getOriginalString().isEmpty()) {
-            throw new MessageTransformerException("Message not set!", ErrorType.BAD_FORMAT);
+            logger.warn("Message empty! Validation failed!");
+            throw new MessageTransformerException("Message empty!", ErrorType.BAD_FORMAT);
         }
     }
 

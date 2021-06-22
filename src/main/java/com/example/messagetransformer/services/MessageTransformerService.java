@@ -50,8 +50,8 @@ public class MessageTransformerService {
                 messageTransformerMap.get(messageData.getMessageDataType());
 
         if (messageTransformer == null) {
-            logger.error("Couldn't create a MessageTransformer from messageDataType: {}"
-                    , messageData.getMessageDataType().name());
+            logger.error("Couldn't create a MessageTransformer from messageDataType: {}",
+                    messageData.getMessageDataType());
             throw new MessageTransformerException("Transformer not found", ErrorType.NOT_FOUND);
         }
 
